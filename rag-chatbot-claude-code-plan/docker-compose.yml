@@ -1,0 +1,67 @@
+# Starter compose file for Phase 7 (Deployment).
+# Claude Code: adapt service names/ports if the backend or frontend
+# Dockerfiles you write in this phase differ from these assumptions.
+# Run with: docker compose up -d --build
+# First run will pull model weights into the ollama volume — this can
+# take several minutes depending on connection speed and model size.
+
+version: "3.9"
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: rag-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    # GPU users: uncomment the deploy block below if running with NVIDIA Docker
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: rag-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - EMBEDDING_MODEL=nomic-embed-text
+      - CHAT_MODEL=llama3.1:8b
+      - CHROMA_DIR=/app/data/chroma
+      - UPLOAD_DIR=/app/uploads
+      - CHUNK_SIZE=800
+      - CHUNK_OVERLAP=100
+      - RETRIEVAL_K=4
+    volumes:
+      - chroma_data:/app/data/chroma
+      - upload_data:/app/uploads
+    depends_on:
+      - ollama
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: rag-frontend
+    ports:
+      - "8501:8501"
+    environment:
+      - BACKEND_URL=http://backend:8000
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  ollama_data:
+  chroma_data:
+  upload_data:
