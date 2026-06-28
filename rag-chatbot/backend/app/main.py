@@ -1,7 +1,9 @@
 """FastAPI application entrypoint."""
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+
+from backend.app.routers import chat, upload
 
 app = FastAPI(
     title="RAG AI Chatbot",
@@ -11,7 +13,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8501"],
+    allow_origins=["*"],  # Allow permissive origins for docker / local testing
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -20,8 +22,18 @@ app.add_middleware(
 
 @app.get("/health")
 def health() -> dict[str, str]:
-    """Liveness check — Ollama connectivity added in a later phase."""
-    return {"status": "ok"}
+    """Liveness check — verify that Ollama is reachable."""
+    try:
+        from backend.app.rag_chain import check_ollama_liveness
+        check_ollama_liveness()
+        return {"status": "ok", "ollama": "reachable"}
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Ollama is unreachable. {exc}",
+        )
 
 
-# Route registration for /upload and /chat will be added in Phase 5.
+app.include_router(upload.router)
+app.include_router(chat.router)
+
