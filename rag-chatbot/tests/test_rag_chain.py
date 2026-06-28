@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
+import httpx
 import pytest
 
 from backend.app.rag_chain import ask
@@ -112,3 +113,14 @@ def test_ask_prompt_contains_context(
     assert "Specific chunk context text" in prompt
     assert "Context Block 1:" in prompt
     assert "What is the specific text?" in prompt
+
+
+@patch("backend.app.rag_chain.httpx.get")
+def test_check_ollama_liveness_raises_runtime_error_when_down(mock_get: MagicMock) -> None:
+    """check_ollama_liveness raises a RuntimeError when Ollama connection fails."""
+    mock_get.side_effect = httpx.ConnectError("Connection refused")
+
+    with pytest.raises(RuntimeError, match="Ollama not reachable"):
+        from backend.app.rag_chain import check_ollama_liveness
+        check_ollama_liveness()
+
