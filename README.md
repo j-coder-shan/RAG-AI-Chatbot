@@ -23,7 +23,9 @@ This project solves this by delivering a **100% local, privacy-preserving Q&A pi
 ## Live Demo
 
 ### Walkthrough & Interaction Demo
-<video src="docs/Demo%20video.mp4" width="100%" height="auto" controls alt="RAG Chatbot Interaction Demo"></video>
+
+https://github.com/j-coder-shan/RAG-AI-Chatbot/raw/feat/flat-repo-structure/docs/Demo%20video.mp4
+
 
 ### App Interface Screenshot
 ![App Screenshot](docs/Screenshot.png)
