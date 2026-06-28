@@ -1,5 +1,0 @@
-You are building a RAG AI Chatbot.
-Always read PLAN.md, CLAUDE.md, and HOW_TO_USE.md before writing any code.
-Reference AI_Portfolio_Build_Plan.pdf for architecture decisions.
-Follow the exact stack and folder structure defined in PLAN.md.
-Never skip steps. Build incrementally and verify each phase works before moving on.
