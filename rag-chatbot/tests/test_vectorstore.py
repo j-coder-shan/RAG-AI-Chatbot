@@ -6,13 +6,18 @@ from pathlib import Path
 
 import pytest
 
+from unittest.mock import MagicMock
+
 from backend.app import config
 from backend.app.chunking import chunk_text
 from backend.app.loaders import extract_pdf_text
 from backend.app.vectorstore import (
+    add_documents,
     build_vectorstore,
+    collection_exists,
     collection_name_from_path,
     get_collection_chunk_count,
+    load_vectorstore,
     retrieve_chunks,
 )
 from tests.conftest import requires_ollama
@@ -99,3 +104,41 @@ def test_nonexistent_collection_raises_value_error(chroma_test_dir: Path) -> Non
     """A missing collection name raises a descriptive ValueError."""
     with pytest.raises(ValueError, match="Collection not found"):
         retrieve_chunks("What is RAG?", "does_not_exist")
+
+
+def test_build_vectorstore_empty_chunks_raises_value_error(chroma_test_dir: Path) -> None:
+    """build_vectorstore raises a ValueError when given an empty chunks list."""
+    with pytest.raises(ValueError, match="Cannot store an empty chunk list"):
+        build_vectorstore([], "empty_test_collection")
+
+
+@requires_ollama
+def test_collection_exists_returns_true_for_existing(ingested_collection: str) -> None:
+    """collection_exists returns True if the Chroma DB collection exists."""
+    assert collection_exists(ingested_collection) is True
+
+
+def test_collection_exists_returns_false_for_missing(chroma_test_dir: Path) -> None:
+    """collection_exists returns False if the collection does not exist."""
+    assert collection_exists("missing_collection_name") is False
+
+
+@requires_ollama
+def test_add_documents_appends_chunks(ingested_collection: str) -> None:
+    """add_documents adds chunks to an existing vector store, increasing the count."""
+    store = load_vectorstore(ingested_collection)
+    initial_count = get_collection_chunk_count(ingested_collection)
+
+    new_chunks = ["This is a completely new chunk of text that is appended later."]
+    add_documents(store, new_chunks)
+
+    new_count = get_collection_chunk_count(ingested_collection)
+    assert new_count == initial_count + len(new_chunks)
+
+
+def test_add_documents_empty_chunks_raises_value_error(chroma_test_dir: Path) -> None:
+    """add_documents raises a ValueError when given an empty chunks list."""
+    mock_store = MagicMock()
+    with pytest.raises(ValueError, match="Cannot add an empty chunk list"):
+        add_documents(mock_store, [])
+
