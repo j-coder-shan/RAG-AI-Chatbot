@@ -23,8 +23,8 @@ This project solves this by delivering a **100% local, privacy-preserving Q&A pi
 ## Live Demo
 
 ### Walkthrough & Interaction Demo
+![Walkthrough Demo](docs/Demovideo.gif)
 
-https://github.com/j-coder-shan/RAG-AI-Chatbot/raw/feat/flat-repo-structure/docs/Demo%20video.mp4
 
 
 ### App Interface Screenshot
